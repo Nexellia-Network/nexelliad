@@ -215,6 +215,8 @@ var MainnetParams = Params{
 	DefaultPort: "33456",
 	DNSSeeds: []string{
 		"mainnet-dnsseed.nexell-ia.net",
+		"mainnet-dnsseed2.nexell-ia.net",
+		"mainnet-dnsseed3.nexell-ia.net",
 	},
 
 	// DAG parameters
