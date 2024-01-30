@@ -34,7 +34,7 @@ const (
 	defaultLogFilename         = "nexelliad.log"
 	defaultErrLogFilename      = "nexelliad_err.log"
 	defaultTargetOutboundPeers = 8
-	defaultMaxInboundPeers     = 157
+	defaultMaxInboundPeers     = 117
 	defaultBanDuration         = time.Hour * 24
 	defaultBanThreshold        = 100
 	//DefaultConnectTimeout is the default connection timeout when dialing
