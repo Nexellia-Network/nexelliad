@@ -201,7 +201,7 @@ func (c *coinbaseManager) calcHalvingPeriodBlockSubsidy(blockDaaScore uint64) ui
 	const secondsPerHalving = 31557600
 	// Note that this calculation implicitly assumes that block per second = 1 (by assuming daa score diff is in second units).
 	monthsSinceHalvingPhaseStarted := (blockDaaScore - c.halvingPhaseDaaScore) / secondsPerHalving
-	// monthsSinceDeflationaryPhaseStarted := (blockDaaScore - c.deflationaryPhaseDaaScore) / secondsPerMonth
+	// monthsSinceHalvingHalvingPhaseStarted := (blockDaaScore - c.halvingPhaseDaaScore) / secondsPerMonth
 	// Return the pre-calculated value from subsidy-per-month table
 	return c.getHalvingPeriodBlockSubsidyFromTable(monthsSinceHalvingPhaseStarted)
 }

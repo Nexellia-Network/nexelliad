@@ -214,8 +214,9 @@ var MainnetParams = Params{
 	RPCPort:     "33455",
 	DefaultPort: "33456",
 	DNSSeeds: []string{
-		"mainnet-dnsseed.nexell-ia.net",
+		"mainnet-dnsseed1.nexell-ia.net",
 		"mainnet-dnsseed2.nexell-ia.net",
+		"mainnet-dnsseed3.nexell-ia.net",
 		"mainnet-dnsseed3.nexell-ia.net",
 	},
 
@@ -284,7 +285,8 @@ var TestnetParams = Params{
 	RPCPort:     "33555",
 	DefaultPort: "33556",
 	DNSSeeds: []string{
-		"testnet-dnsseed.nexell-ia.net",
+		"testnet-dnsseed1.nexell-ia.net",
+		"testnet-dnsseed2.nexell-ia.net",
 	},
 
 	// DAG parameters
