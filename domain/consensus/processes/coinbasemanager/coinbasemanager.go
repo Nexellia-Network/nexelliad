@@ -197,49 +197,36 @@ func (c *coinbaseManager) CalcBlockSubsidy(stagingArea *model.StagingArea, block
 func (c *coinbaseManager) calcHalvingPeriodBlockSubsidy(blockDaaScore uint64) uint64 {
 	// We define a year as 365.25 days and a month as 365.25 / 12 = 30.4375
 	// secondsPerMonth = 30.4375 * 24 * 60 * 60 = 2629800
-	// secondsPerHalving = 2629800 * 12
-	const secondsPerHalving = 31557600
+	// secondsPerHalving = 2629800 * 12 = 31557600
+	const secondsInYear = 31557600
 	// Note that this calculation implicitly assumes that block per second = 1 (by assuming daa score diff is in second units).
-	monthsSinceHalvingPhaseStarted := (blockDaaScore - c.halvingPhaseDaaScore) / secondsPerHalving
+	yearsSinceHalvingPhaseStarted := (blockDaaScore - c.halvingPhaseDaaScore) / secondsInYear
 	// monthsSinceHalvingHalvingPhaseStarted := (blockDaaScore - c.halvingPhaseDaaScore) / secondsPerMonth
-	// Return the pre-calculated value from subsidy-per-month table
-	return c.getHalvingPeriodBlockSubsidyFromTable(monthsSinceHalvingPhaseStarted)
+	// Return the pre-calculated value from subsidy-per-year table
+	return c.getHalvingPeriodBlockSubsidyFromTable(yearsSinceHalvingPhaseStarted)
 }
 
 /*
-This table was pre-calculated by calling `calcHalvingPeriodBlockSubsidyFloatCalc` for all months until reaching 0 subsidy.
+This table was pre-calculated by calling `calcHalvingPeriodBlockSubsidyFloatCalc` for all years until reaching 0 subsidy.
 To regenerate this table, run `TestBuildSubsidyTable` in coinbasemanager_test.go (note the `halvingPhaseBaseSubsidy` therein)
 */
-var subsidyByHalvingMonthTable = []uint64{
-	600000000, 600000000, 600000000, 600000000, 600000000, 600000000, 600000000, 600000000, 600000000, 600000000, 600000000, 600000000, 300000000, 300000000, 300000000, 300000000, 300000000, 300000000, 300000000, 300000000, 300000000, 300000000, 300000000, 300000000, 150000000,
-	150000000, 150000000, 150000000, 150000000, 150000000, 150000000, 150000000, 150000000, 150000000, 150000000, 150000000, 75000000, 75000000, 75000000, 75000000, 75000000, 75000000, 75000000, 75000000, 75000000, 75000000, 75000000, 75000000, 37500000, 37500000,
-	37500000, 37500000, 37500000, 37500000, 37500000, 37500000, 37500000, 37500000, 37500000, 37500000, 18750000, 18750000, 18750000, 18750000, 18750000, 18750000, 18750000, 18750000, 18750000, 18750000, 18750000, 18750000, 9375000, 9375000, 9375000,
-	9375000, 9375000, 9375000, 9375000, 9375000, 9375000, 9375000, 9375000, 9375000, 4687500, 4687500, 4687500, 4687500, 4687500, 4687500, 4687500, 4687500, 4687500, 4687500, 4687500, 4687500, 2343750, 2343750, 2343750, 2343750,
-	2343750, 2343750, 2343750, 2343750, 2343750, 2343750, 2343750, 2343750, 1171875, 1171875, 1171875, 1171875, 1171875, 1171875, 1171875, 1171875, 1171875, 1171875, 1171875, 1171875, 5859375, 5859375, 5859375, 5859375, 5859375,
-	5859375, 5859375, 5859375, 5859375, 5859375, 5859375, 5859375, 2929688, 2929688, 2929688, 2929688, 2929688, 2929688, 2929688, 2929688, 2929688, 2929688, 2929688, 2929688, 1464844, 1464844, 1464844, 1464844, 1464844, 1464844,
-	1464844, 1464844, 1464844, 1464844, 1464844, 1464844, 732422, 732422, 732422, 732422, 732422, 732422, 732422, 732422, 732422, 732422, 732422, 732422, 366211, 366211, 366211, 366211, 366211, 366211, 366211,
-	366211, 366211, 366211, 366211, 366211, 183105, 183105, 183105, 183105, 183105, 183105, 183105, 183105, 183105, 183105, 183105, 183105, 91553, 91553, 91553, 91553, 91553, 91553, 91553, 91553,
-	91553, 91553, 91553, 91553, 45776, 45776, 45776, 45776, 45776, 45776, 45776, 45776, 45776, 45776, 45776, 45776, 22888, 22888, 22888, 22888, 22888, 22888, 22888, 22888, 22888,
-	22888, 22888, 22888, 11444, 11444, 11444, 11444, 11444, 11444, 11444, 11444, 11444, 11444, 11444, 11444, 5722, 5722, 5722, 5722, 5722, 5722, 5722, 5722, 5722, 5722,
-	5722, 5722, 2861, 2861, 2861, 2861, 2861, 2861, 2861, 2861, 2861, 2861, 2861, 2861, 1431, 1431, 1431, 1431, 1431, 1431, 1431, 1431, 1431, 1431, 1431,
-	1431, 715, 715, 715, 715, 715, 715, 715, 715, 715, 715, 715, 715, 358, 358, 358, 358, 358, 358, 358, 358, 358, 358, 358, 358,
-	179, 179, 179, 179, 179, 179, 179, 179, 179, 179, 179, 179, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 45,
-	45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 11, 11,
-	11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	0,
+var subsidyByHalvingYearTable = []uint64{
+	600000000, 300000000, 150000000, 75000000, 37500000,
+	18750000, 9375000, 4687500, 2343750, 1171875, 585937,
+	292968, 146484, 73242, 36621, 18310, 9155, 4577, 2288,
+	1144, 572, 286, 143, 71, 35, 17, 8, 4, 2, 1, 0,
 }
 
-func (c *coinbaseManager) getHalvingPeriodBlockSubsidyFromTable(month uint64) uint64 {
-	if month >= uint64(len(subsidyByHalvingMonthTable)) {
-		month = uint64(len(subsidyByHalvingMonthTable) - 1)
+func (c *coinbaseManager) getHalvingPeriodBlockSubsidyFromTable(year uint64) uint64 {
+	if year >= uint64(len(subsidyByHalvingYearTable)) {
+		year = uint64(len(subsidyByHalvingYearTable) - 1)
 	}
-	return subsidyByHalvingMonthTable[month]
+	return subsidyByHalvingYearTable[year]
 }
 
-func (c *coinbaseManager) calcHalvingPeriodBlockSubsidyFloatCalc(month uint64) uint64 {
+func (c *coinbaseManager) calcHalvingPeriodBlockSubsidyFloatCalc(year uint64) uint64 {
 	baseSubsidy := c.halvingPhaseBaseSubsidy
-	subsidy := float64(baseSubsidy) / math.Pow(2, float64(month)/12)
+	subsidy := float64(baseSubsidy) / math.Pow(2, float64(year))
 	return uint64(subsidy)
 }
 
